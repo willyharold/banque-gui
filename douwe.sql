@@ -1,0 +1,13 @@
+CREATE TABLE users (id integer primary key autoincrement, username varchar(20) not null unique, passwd varchar(30) not null, role integer default 0, status int default 0);
+INSERT INTO "users" VALUES(1,'SYSTEM','SYSTEM',2,1);
+INSERT INTO "users" VALUES(2,'admin','admin',2,0);
+CREATE TABLE customer(id integer primary key autoincrement, name varchar(30) not null unique, emailAddress varchar(30) not null, phoneNumber varchar(30), status int default 0, user_id integer not null, foreign key(user_id) references users(id));
+INSERT INTO "customer" VALUES(1,'SYSTEM','banque@banque.com',NULL,1,1);
+CREATE TABLE account(id integer primary key autoincrement, accountNumber varchar(12) not null unique,  balance double default 0.0, dateCreation date,type integer default 0, customer_id integer not null, status int default 0, foreign key(customer_id) references customer(id));
+INSERT INTO "account" VALUES(1,'SYSTEM',0.0,NULL,0,1,1);
+CREATE TABLE operations(id integer primary key autoincrement, operationType integer not null, dateOperation date not null, description varchar(40) not null, account_id integer not null, user_id integer not null, foreign key(user_id) references users(id), foreign key(account_id) references account(id));
+DELETE FROM sqlite_sequence;
+INSERT INTO "sqlite_sequence" VALUES('users',2);
+INSERT INTO "sqlite_sequence" VALUES('customer',1);
+INSERT INTO "sqlite_sequence" VALUES('account',1);
+INSERT INTO "sqlite_sequence" VALUES('operations',0);
