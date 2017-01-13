@@ -30,8 +30,12 @@ public class UsersDaoImpl implements IusersDao {
 
     
     public int create(Users user) {
+        if(user.getRole()==null)
+            user.setRole(RoleType.values()[0]);
+        if(user.getStatut()==null)
+            user.setStatut(0);
         try {
-            PreparedStatement p=conn.prepareStatement("insert into users (username, passwd, statut, role) values (?,?,?,?)");
+            PreparedStatement p=conn.prepareStatement("insert into users (username, passwd, status, role) values (?,?,?,?)");
             p.setString(1, user.getUsername());
             p.setString(2, user.getPasswd());
             p.setInt(3, user.getStatut());
@@ -47,7 +51,7 @@ public class UsersDaoImpl implements IusersDao {
 
     public void update(Users user) {
         try {
-            PreparedStatement p=conn.prepareStatement("update users (username=?, passwd=?, statut=?, role=?) where id=?");
+            PreparedStatement p=conn.prepareStatement("update users (username=?, passwd=?, status=?, role=?) where id=?");
             p.setString(1, user.getUsername());
             p.setString(2, user.getPasswd());
             p.setInt(3, user.getStatut());
@@ -82,7 +86,26 @@ public class UsersDaoImpl implements IusersDao {
             user.setId(r.getInt("id"));
             user.setPasswd(r.getString("passwd"));
             user.setRole(RoleType.values()[r.getInt("role")]);
-            user.setStatut(r.getInt("statut"));
+            user.setStatut(r.getInt("status"));
+            user.setUsername(r.getString("username"));
+            return user;
+        } catch (SQLException ex) {
+            return null;
+        }
+
+    }
+    
+     public Users findByUsername(String username) {
+        
+        try {
+            PreparedStatement p = conn.prepareStatement("select * from users where username = ?");
+            p.setString(1, username);
+            ResultSet r=p.executeQuery();
+            Users user = new Users();
+            user.setId(r.getInt("id"));
+            user.setPasswd(r.getString("passwd"));
+            user.setRole(RoleType.values()[r.getInt("role")]);
+            user.setStatut(r.getInt("status"));
             user.setUsername(r.getString("username"));
             return user;
         } catch (SQLException ex) {
@@ -101,7 +124,7 @@ public class UsersDaoImpl implements IusersDao {
                 user.setId(r.getInt("id"));
                 user.setPasswd(r.getString("passwd"));
                 user.setRole(RoleType.values()[r.getInt("role")]);
-                user.setStatut(r.getInt("statut"));
+                user.setStatut(r.getInt("status"));
                 user.setUsername(r.getString("username"));
                 users.add(user);
             }

@@ -22,4 +22,6 @@ public interface IusersDao {
    public Users findById(int id);
   
    public List<Users> FindAll();
+   
+   public Users findByUsername(String username);
 }

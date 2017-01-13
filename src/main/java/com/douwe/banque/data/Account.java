@@ -17,7 +17,6 @@ public class Account {
     private AccountType type;
     private String accountNumber;
     private Double balance;
-    private String phoneNumber;
     private Customer customer;
     private Date dateCreation;
 
@@ -61,14 +60,6 @@ public class Account {
 
     public void setBalance(Double balance) {
         this.balance = balance;
-    }
-
-    public String getPhoneNumber() {
-        return phoneNumber;
-    }
-
-    public void setPhoneNumber(String phoneNumber) {
-        this.phoneNumber = phoneNumber;
     }
 
     public Customer getCustomer() {

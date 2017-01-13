@@ -32,8 +32,10 @@ public class CustomerDaoImpl implements IcustomerDao {
     IusersDao iusersDao= new UsersDaoImpl();
  
     public int create(Customer customer) {
+        if(customer.getStatus()==null)
+            customer.setStatus(0);
         try {
-            PreparedStatement p=conn.prepareStatement("insert into customer (statut, name, emailAddress, phoneNumber,user_id) values (?,?,?,?,?)");
+            PreparedStatement p=conn.prepareStatement("insert into customer (status, name, emailAddress, phoneNumber,user_id) values (?,?,?,?,?)");
             p.setInt(1, customer.getStatus());
             p.setInt(5, customer.getUsers().getId());
             p.setString(3, customer.getEmailAddress());
@@ -64,7 +66,7 @@ public class CustomerDaoImpl implements IcustomerDao {
 
     public int update(Customer customer) {
     try {
-            PreparedStatement p=conn.prepareStatement("update customer (statut =?, name=?, emailAddress=?, phoneNumber=?,user_id=?) where id=?");
+            PreparedStatement p=conn.prepareStatement("update customer (status =?, name=?, emailAddress=?, phoneNumber=?,user_id=?) where id=?");
             p.setInt(1, customer.getStatus());
             p.setInt(5, customer.getUsers().getId());
             p.setString(3, customer.getEmailAddress());
@@ -99,7 +101,7 @@ public class CustomerDaoImpl implements IcustomerDao {
             while(r.next()){
                  customer.setId(r.getInt("id"));
                  customer.setPhoneNumber(r.getString("phoneNumber"));
-                 customer.setStatus(r.getInt("statut"));
+                 customer.setStatus(r.getInt("status"));
                  customer.setEmailAddress(r.getString("emailAddress"));
                  customer.setName(r.getString("name"));
                  customer.setUsers(iusersDao.findById(r.getInt("user_id")));
@@ -120,7 +122,7 @@ public class CustomerDaoImpl implements IcustomerDao {
                  Customer customer = new Customer();             
                  customer.setId(r.getInt("id"));
                  customer.setPhoneNumber(r.getString("phoneNumber"));
-                 customer.setStatus(r.getInt("statut"));
+                 customer.setStatus(r.getInt("status"));
                  customer.setEmailAddress(r.getString("emailAddress"));
                  customer.setName(r.getString("name"));
                  customer.setUsers(iusersDao.findById(r.getInt("user_id")));
@@ -144,7 +146,7 @@ public class CustomerDaoImpl implements IcustomerDao {
                  Customer customer = new Customer();             
                  customer.setId(r.getInt("id"));
                  customer.setPhoneNumber(r.getString("phoneNumber"));
-                 customer.setStatus(r.getInt("statut"));
+                 customer.setStatus(r.getInt("status"));
                  customer.setEmailAddress(r.getString("emailAddress"));
                  customer.setName(r.getString("name"));
                  customer.setUsers(iusersDao.findById(r.getInt("user_id")));
@@ -167,7 +169,7 @@ public class CustomerDaoImpl implements IcustomerDao {
                  Customer customer = new Customer();             
                  customer.setId(r.getInt("id"));
                  customer.setPhoneNumber(r.getString("phoneNumber"));
-                 customer.setStatus(r.getInt("statut"));
+                 customer.setStatus(r.getInt("status"));
                  customer.setEmailAddress(r.getString("emailAddress"));
                  customer.setName(r.getString("name"));
                  customer.setUsers(iusersDao.findById(r.getInt("user_id")));

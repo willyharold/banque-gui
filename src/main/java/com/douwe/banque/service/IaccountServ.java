@@ -16,7 +16,7 @@ import java.util.List;
 public interface IaccountServ {
    public void create(Account account);
    
-   public void update(Account account);
+   public int update(Account account);
    
    public int updateStatut(String id);
    

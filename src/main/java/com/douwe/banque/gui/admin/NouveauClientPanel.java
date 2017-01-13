@@ -98,6 +98,7 @@ public class NouveauClientPanel extends JPanel {
                         user.setPasswd("admin");
                         user.setUsername(val);
                         user.setRole(RoleType.customer);
+                        
                         if(iusersServ.create(user) > 0){
                         c.setName(name);
                         c.setEmailAddress(email);

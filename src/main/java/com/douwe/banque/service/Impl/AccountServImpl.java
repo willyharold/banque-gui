@@ -21,8 +21,8 @@ public class AccountServImpl implements IaccountServ {
         iaccountDao.create(account);
     }
 
-    public void update(Account account) {
-        iaccountDao.update(account);
+    public int update(Account account) {
+        return iaccountDao.update(account);
     }
 
     public void delete(int id) {

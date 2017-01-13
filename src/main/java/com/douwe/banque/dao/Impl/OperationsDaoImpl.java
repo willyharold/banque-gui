@@ -29,14 +29,14 @@ import java.util.logging.Logger;
 public class OperationsDaoImpl implements IoperationsDao{
 
     private Connection conn;
-    private IoperationsDao ioperationsDao = new OperationsDaoImpl();
+//    private IoperationsDao ioperationsDao = new OperationsDaoImpl();
     private IusersDao iusersDao = new UsersDaoImpl();
     public OperationsDaoImpl(){
         this.conn = Connectionfactory.getConnection();
     }
     public int create(Operations operations) {
         try {
-            PreparedStatement p=conn.prepareStatement("insert into operations (account_id, user_id, dateOperation, description, operationType) values (?,?,?,?)");
+            PreparedStatement p=conn.prepareStatement("insert into operations (account_id, user_id, dateOperation, description, operationType) values (?,?,?,?,?)");
             p.setInt(1, operations.getAccount().getId());
             p.setInt(2, operations.getUsers().getId());
             p.setDate(3, (Date) operations.getDateOperation());

@@ -1,9 +1,19 @@
 package com.douwe.banque.gui.admin;
 
+import com.douwe.banque.data.Account;
 import com.douwe.banque.data.Operation;
+import com.douwe.banque.data.Operations;
 import com.douwe.banque.gui.MainMenuPanel;
 import com.douwe.banque.gui.common.EmptyPanel;
 import com.douwe.banque.gui.common.UserInfo;
+import com.douwe.banque.service.IaccountServ;
+import com.douwe.banque.service.IcustomerServ;
+import com.douwe.banque.service.Impl.AccountServImpl;
+import com.douwe.banque.service.Impl.CustomerServImpl;
+import com.douwe.banque.service.Impl.IoperationsServImpl;
+import com.douwe.banque.service.Impl.IusersServImpl;
+import com.douwe.banque.service.IoperationsServ;
+import com.douwe.banque.service.IusersServ;
 import com.jgoodies.forms.builder.DefaultFormBuilder;
 import com.jgoodies.forms.layout.FormLayout;
 import java.awt.BorderLayout;
@@ -36,6 +46,10 @@ public class NouveauDebitPanel extends JPanel {
     private JButton btnEnregistrer;
     private Connection conn;
     private MainMenuPanel parent;
+    private IcustomerServ icustomerServ = new CustomerServImpl();
+    private IusersServ iusersServ = new IusersServImpl();
+    private IoperationsServ ioperationsServ = new IoperationsServImpl();
+    private IaccountServ iaccountServ = new AccountServImpl();
 
     public NouveauDebitPanel(MainMenuPanel parentFrame) {
         setLayout(new BorderLayout(10, 10));
@@ -74,49 +88,65 @@ public class NouveauDebitPanel extends JPanel {
                         JOptionPane.showMessageDialog(null, "Le montant doit etre un nombre positif");
                         return;
                     }
-                    conn = DriverManager.getConnection("jdbc:sqlite:banque.db");
-                    PreparedStatement pst1 = conn.prepareStatement("select * from account where accountNumber = ?");
-                    pst1.setString(1, account);
-                    ResultSet rs = pst1.executeQuery();
-                    if (rs.next()) {
-                        if (rs.getDouble("balance") <= amount) {
-                            JOptionPane.showMessageDialog(null, "Le solde du compte n'est pas suffisant pour cette opération");
-                        } else {
-                            conn.setAutoCommit(false);
-                            PreparedStatement pst2 = conn.prepareStatement("update account set balance = balance - ? where accountNumber = ?");
-                            PreparedStatement pst3 = conn.prepareStatement("insert into operations(operationType, dateOperation,description,account_id, user_id) values (?,?,?,?,?)");
-                            pst2.setDouble(1, amount);
-                            pst2.setString(2, account);
-                            pst2.executeUpdate();
-                            pst3.setInt(1, Operation.debit.ordinal());
-                            pst3.setDate(2, new Date(new java.util.Date().getTime()));
-                            pst3.setString(3, "Debit de " + amount + " du compte " + account);
-                            pst3.setInt(4, rs.getInt("id"));
-                            pst3.setInt(5, UserInfo.getUserId());
-                            pst3.executeUpdate();
-                            conn.commit();
-                            pst2.close();
-                            pst3.close();
-                            JOptionPane.showMessageDialog(null, "Opération réalisée avec succès");
-                            parent.setContenu(EmptyPanel.emptyPanel());
-                        }
-                    } else {
-                        JOptionPane.showMessageDialog(null, "Le compte specifié n'existe pas");
+                    Account account1 = new Account();
+                    account1 = iaccountServ.findByAccountNumber(account);
+                    if(account1!=null){
+                       if(account1.getBalance()<= amount)
+                           JOptionPane.showMessageDialog(null, "Le solde du compte n'est pas suffisant pour cette opération");
+                       else{  
+                           account1.setBalance(account1.getBalance()-amount);
+                           iaccountServ.update(account1);
+                           Operations operations = new Operations();
+                           operations.setOperationType(Operation.debit);
+                           operations.setDateOperation(new Date(new java.util.Date().getTime()));
+                           operations.setDescription("Debit de " + amount + " du compte " + account);
+                           operations.setAccount(account1);
+                           operations.setUsers(iusersServ.findById(UserInfo.getUserId()));
+                           ioperationsServ.create(operations);
+                           JOptionPane.showMessageDialog(null, "Opération réalisée avec succès");
+                           parent.setContenu(EmptyPanel.emptyPanel());
+                       }                   
                     }
-                    rs.close();
-                    pst1.close();
-                    conn.close();
-                } catch (SQLException ex) {
+                    else{
+                      JOptionPane.showMessageDialog(null, "Le compte specifié n'existe pas");  
+                    }
+//                    conn = DriverManager.getConnection("jdbc:sqlite:banque.db");
+//                    PreparedStatement pst1 = conn.prepareStatement("select * from account where accountNumber = ?");
+//                    pst1.setString(1, account);
+//                    ResultSet rs = pst1.executeQuery();
+//                    if (rs.next()) {
+//                        if (rs.getDouble("balance") <= amount) {
+//                            JOptionPane.showMessageDialog(null, "Le solde du compte n'est pas suffisant pour cette opération");
+//                        } else {
+//                            conn.setAutoCommit(false);
+//                            PreparedStatement pst2 = conn.prepareStatement("update account set balance = balance - ? where accountNumber = ?");
+//                            PreparedStatement pst3 = conn.prepareStatement("insert into operations(operationType, dateOperation,description,account_id, user_id) values (?,?,?,?,?)");
+//                            pst2.setDouble(1, amount);
+//                            pst2.setString(2, account);
+//                            pst2.executeUpdate();
+//                            pst3.setInt(1, Operation.debit.ordinal());
+//                            pst3.setDate(2, new Date(new java.util.Date().getTime()));
+//                            pst3.setString(3, "Debit de " + amount + " du compte " + account);
+//                            pst3.setInt(4, rs.getInt("id"));
+//                            pst3.setInt(5, UserInfo.getUserId());
+//                            pst3.executeUpdate();
+//                            conn.commit();
+//                            pst2.close();
+//                            pst3.close();
+//                            JOptionPane.showMessageDialog(null, "Opération réalisée avec succès");
+//                            parent.setContenu(EmptyPanel.emptyPanel());
+//                        }
+//                    } else {
+//                        JOptionPane.showMessageDialog(null, "Le compte specifié n'existe pas");
+//                    }
+//                    rs.close();
+//                    pst1.close();
+//                    conn.close();
+                } catch (Exception e) {
                     JOptionPane.showMessageDialog(null, "Impossible de procéder à l'opération de débit");
-                    Logger.getLogger(NouveauDebitPanel.class.getName()).log(Level.SEVERE, null, ex);
+                    Logger.getLogger(NouveauDebitPanel.class.getName()).log(Level.SEVERE, null, e);
                 }
-                if (conn != null) {
-                    try {
-                        conn.close();
-                    } catch (SQLException ex1) {
-                        Logger.getLogger(NouveauDebitPanel.class.getName()).log(Level.SEVERE, null, ex1);
-                    }
-                }
+                
             }
         });
     }

@@ -2,7 +2,9 @@ package com.douwe.banque.gui.admin;
 
 import com.douwe.banque.data.Account;
 import com.douwe.banque.data.AccountType;
+import com.douwe.banque.data.Customer;
 import com.douwe.banque.data.Operation;
+import com.douwe.banque.data.Operations;
 import com.douwe.banque.gui.MainMenuPanel;
 import com.douwe.banque.service.IaccountServ;
 import com.douwe.banque.service.IcustomerServ;
@@ -21,14 +23,8 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.sql.Connection;
 import java.sql.Date;
-import java.sql.DriverManager;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import javax.swing.JButton;
 import javax.swing.JComboBox;
 import javax.swing.JLabel;
@@ -93,7 +89,7 @@ public class NouveauComptePanel extends JPanel {
         btnEnregistrer.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent ae) {
                 if (id > 0) {
-                    try {
+                    
                         // here I'm updating an account
                         String number = numberText.getText();
                         AccountType type = (AccountType) typeText.getSelectedItem();
@@ -105,18 +101,14 @@ public class NouveauComptePanel extends JPanel {
                             JOptionPane.showMessageDialog(null, "Le type du compte n'est pas specifie");
                             return;
                         }
-                        conn = DriverManager.getConnection("jdbc:sqlite:banque.db");
-                        PreparedStatement pst = conn.prepareStatement("update account set type=? , accountNumber=? where id =?");
-                        pst.setInt(1, type.ordinal());
-                        pst.setString(2, number);
-                        pst.setInt(3, id);
-                        pst.executeUpdate();
-                        pst.close();
-                        conn.close();
+                        Account account =iaccountServ.findById(id);
+                        account.setType(type);
+                        account.setAccountNumber(number);
+                        if(iaccountServ.update(account)>0){
+                        
                         parent.setContenu(new ComptePanel(parent));
-                    } catch (SQLException ex) {
+                    } else{
                         JOptionPane.showMessageDialog(null, "Impossible de mettre à jour le compte");
-                        Logger.getLogger(NouveauComptePanel.class.getName()).log(Level.SEVERE, null, ex);
                     }
 
                 } else {
@@ -153,50 +145,59 @@ public class NouveauComptePanel extends JPanel {
                             JOptionPane.showMessageDialog(null, "Le solde compte doit être un nombre positif");
                             return;
                         }
-                        conn = DriverManager.getConnection("jdbc:sqlite:banque.db");
-                        PreparedStatement pst = conn.prepareStatement("select id from customer where name = ?");
-                        pst.setString(1, customer);
-                        ResultSet rs = pst.executeQuery();
-                        if (rs.next()) {
-                            int customer_id = rs.getInt("id");
-                            conn.setAutoCommit(false);
-                            PreparedStatement st = conn.prepareStatement("insert into account(accountNumber,balance,dateCreation,type, customer_id) values(?,?,?,?,?)");
-                            st.setString(1, number);
-                            st.setDouble(2, balance);
-                            st.setDate(3, new Date(new java.util.Date().getTime()));
-                            st.setInt(4, type.ordinal());
-                            st.setInt(5, customer_id);
-                            st.executeUpdate();
-                            st.close();
-                            PreparedStatement pst3 = conn.prepareStatement("insert into operations(operationType, dateOperation,description, account_id, user_id) values (?,?,?,?,?)");
-                            pst3.setInt(1, Operation.ouverture.ordinal());
-                            pst3.setDate(2, new Date(new java.util.Date().getTime()));
-                            pst3.setString(3, "Ouverture du compte " + number);
-                            pst3.setInt(4, 1);
-                            pst3.setInt(5, 1);
-                            pst3.executeUpdate();
-                            pst3.close();
-                            conn.commit();
+                        Account account = new Account();
+                        account.setAccountNumber(number);
+                        account.setBalance(balance);
+                        account.setDateCreation(new Date(new java.util.Date().getTime()));
+                        account.setType(type);
+                        List<Customer> customers = new LinkedList<Customer>();
+                        customers = icustomerServ.findByName(customer);
+                        if(customers!=null){
+                            account.setCustomer(customers.get(0));
+                            iaccountServ.create(account);
+                            Operations operations = new Operations();
+                            operations.setOperationType(Operation.ouverture);
+                            operations.setDateOperation(new Date(new java.util.Date().getTime()));
+                            operations.setDescription("Ouverture du compte " + number);
+                            operations.setUsers(iusersServ.findById(1));
+                            operations.setAccount(iaccountServ.findById(1));
+                            ioperationsServ.create(operations);
+//                        conn = DriverManager.getConnection("jdbc:sqlite:banque.db");
+//                        PreparedStatement pst = conn.prepareStatement("select id from customer where name = ?");
+//                        pst.setString(1, customer);
+//                        ResultSet rs = pst.executeQuery();
+//                        if (rs.next()) {
+//                            int customer_id = rs.getInt("id");
+//                            conn.setAutoCommit(false);
+//                            PreparedStatement st = conn.prepareStatement("insert into account(accountNumber,balance,dateCreation,type, customer_id) values(?,?,?,?,?)");
+//                            st.setString(1, number);
+//                            st.setDouble(2, balance);
+//                            st.setDate(3, new Date(new java.util.Date().getTime()));
+//                            st.setInt(4, type.ordinal());
+//                            st.setInt(5, customer_id);
+//                            st.executeUpdate();
+//                            st.close();
+//                            PreparedStatement pst3 = conn.prepareStatement("insert into operations(operationType, dateOperation,description, account_id, user_id) values (?,?,?,?,?)");
+//                            pst3.setInt(1, Operation.ouverture.ordinal());
+//                            pst3.setDate(2, new Date(new java.util.Date().getTime()));
+//                            pst3.setString(3, "Ouverture du compte " + number);
+//                            pst3.setInt(4, 1);
+//                            pst3.setInt(5, 1);
+//                            pst3.executeUpdate();
+//                            pst3.close();
+//                            conn.commit();
                         } else {
                             JOptionPane.showMessageDialog(null, "Le client spécifié n'existe pas");
                             return;
                         }
-                        rs.close();
-                        pst.close();
-                        conn.close();
+                        
                         parent.setContenu(new ComptePanel(parent));
-                    } catch (SQLException ex) {
+                    } catch(Exception e) {
                         JOptionPane.showMessageDialog(null, "Impossible d'enregistrer le compte");
-                        Logger.getLogger(NouveauComptePanel.class.getName()).log(Level.SEVERE, null, ex);
                     }
+                    
                 }
-                if (conn != null) {
-                    try {
-                        conn.close();
-                    } catch (SQLException ex1) {
-                        Logger.getLogger(NouveauComptePanel.class.getName()).log(Level.SEVERE, null, ex1);
-                    }
-                }
+                
             }
         });
     }

@@ -36,7 +36,7 @@ public class IusersServImpl implements IusersServ {
     }
 
     public Users findByUsername(String name) {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        return iusersDao.findByUsername(name);
     }
     
 }
